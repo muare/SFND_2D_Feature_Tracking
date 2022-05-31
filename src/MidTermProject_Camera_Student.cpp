@@ -10,8 +10,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d.hpp>
-#include <opencv2/xfeatures2d.hpp>
-#include <opencv2/xfeatures2d/nonfree.hpp>
+// #include <opencv2/xfeatures2d.hpp>
+// #include <opencv2/xfeatures2d/nonfree.hpp>
 
 #include "dataStructures.h"
 #include "matching2D.hpp"
@@ -63,6 +63,10 @@ int main(int argc, const char *argv[])
         DataFrame frame;
         frame.cameraImg = imgGray;
         dataBuffer.push_back(frame);
+        if(dataBuffer.size() >= 3)
+        {
+            dataBuffer.erase(dataBuffer.begin());
+        }
 
         //// EOF STUDENT ASSIGNMENT
         cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
@@ -71,7 +75,7 @@ int main(int argc, const char *argv[])
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
+        string detectorType = "FAST";
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
@@ -81,9 +85,10 @@ int main(int argc, const char *argv[])
         {
             detKeypointsShiTomasi(keypoints, imgGray, false);
         }
-        else
+        else if (detectorType.compare("FAST") == 0)
         {
             //...
+            detKeypointsFAST(keypoints, imgGray, false);
         }
         //// EOF STUDENT ASSIGNMENT
 
@@ -96,6 +101,19 @@ int main(int argc, const char *argv[])
         if (bFocusOnVehicle)
         {
             // ...
+            vector<cv::KeyPoint>::iterator keypoint;
+            vector<cv::KeyPoint> keypoints_roi;
+            for(keypoint = keypoints.begin(); keypoint != keypoints.end(); ++keypoint)
+            {
+                if (vehicleRect.contains(keypoint->pt))
+                {  
+                cv::KeyPoint newKeyPoint;
+                newKeyPoint.pt = cv::Point2f(keypoint->pt);
+                newKeyPoint.size = 1;
+                keypoints_roi.push_back(newKeyPoint);
+                }
+            }
+            keypoints =  keypoints_roi;            
         }
 
         //// EOF STUDENT ASSIGNMENT
